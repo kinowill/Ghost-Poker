@@ -16,20 +16,23 @@
 
 ---
 
-## 2026-04-22 — J0 : environnement Python prêt
+## 2026-04-22 — J0 : environnement Python + outils prêts
 
-- **État** : validation réelle côté environnement dev.
+- **État** : validation réelle côté environnement dev + outils externes.
 - **Ce qui a été fait** :
   - `pyproject.toml` écrit (Python 3.12, deps de base + extras `dev`/`ocr`/`browser`).
-  - Squelette `src/ghost_poker/` créé avec sous-modules (`perception`, `brain`, `control`, `orchestrator`, `utils`).
-  - `scripts/smoke_test.py` pour vérifier que toutes les deps de base importent.
-  - `README.md` minimal pointant sur MASTER / ROADMAP / JOURNAL.
-  - `uv sync` : Python 3.12 téléchargé, 37 paquets installés, `ghost_poker` installé en editable.
+  - Squelette `src/ghost_poker/` créé avec sous-modules.
+  - `scripts/smoke_test.py` + `scripts/validate_j0.py` écrits.
+  - `uv sync` : Python 3.12 + 37 paquets installés, `ghost_poker` en editable.
+  - PokerTH 2.0.6 installé via `winget install PokerTH.PokerTH`.
+  - Clé Mistral créée + collée dans `.env` local (gitignored).
 - **Ce qui a été observé** :
-  - `uv run python scripts/smoke_test.py` → 10/10 OK (mss, cv2, numpy, pyautogui, treys, loguru, mistralai, dotenv, pydantic, ghost_poker).
-- **Ce qui reste à vérifier pour clôturer J0** :
-  - Installation PokerTH (manuel, utilisateur).
-  - Création clé API Mistral dans `.env` (manuel, utilisateur).
+  - Smoke test 10/10 imports OK.
+  - Validation J0 : Mistral API répond (accès mistral-medium-latest entre autres), capture écran OK (1920×1080) → `data/captures/j0_validation.png`.
+  - PokerTH installé, pas encore lancé visuellement (à confirmer par l'utilisateur).
+  - Note technique : `mistralai 2.4.1` expose `Mistral` via `mistralai.client.sdk.Mistral` (pas `from mistralai import Mistral`). Import à retenir pour la suite.
+- **Ce qui reste à vérifier pour clôturer J0 à 100 %** :
+  - Utilisateur lance PokerTH une fois → confirme qu'une table s'affiche et qu'il peut démarrer une partie IA locale.
 - **Commit(s) liés** : à créer maintenant.
 
 ---

@@ -136,15 +136,19 @@ Dans l'ordre de priorité :
 **Date** : 2026-04-22
 **Phase** : J0 — Bootstrap projet.
 
-- ✅ MASTER / ROADMAP / JOURNAL / .gitignore / .env.example créés.
-- ✅ Dépôt git initialisé, remote `kinowill/Ghost-Poker` ajouté, premier push (commit `c4f40d3`).
-- ✅ `pyproject.toml` + squelette `src/ghost_poker/` + `scripts/smoke_test.py` + `README.md`.
-- ✅ `uv sync` OK (Python 3.12 installé via uv, 37 paquets, ghost_poker en editable).
-- ✅ Smoke test 10/10 (mss, cv2, numpy, pyautogui, treys, loguru, mistralai, dotenv, pydantic, ghost_poker).
-- ⏳ Installation PokerTH (banc de test A1) — à faire manuellement.
-- ⏳ Clé API Mistral (free tier) — à créer et coller dans `.env`.
+- ✅ MASTER / ROADMAP / JOURNAL / .gitignore / .env.example / README créés.
+- ✅ Dépôt git initialisé, remote `kinowill/Ghost-Poker`, push OK.
+- ✅ `pyproject.toml` + squelette `src/ghost_poker/` + scripts.
+- ✅ `uv sync` OK (Python 3.12 + 37 paquets, `ghost_poker` en editable).
+- ✅ Smoke test 10/10 imports.
+- ✅ PokerTH 2.0.6 installé (winget).
+- ✅ Clé Mistral créée + dans `.env` local (gitignored). Accès à `mistral-medium-latest` confirmé par appel `models.list()`.
+- ✅ Capture écran mss OK (1920×1080).
+- ⏳ **Validation utilisateur** : lancer PokerTH une fois et démarrer une partie IA locale pour confirmer que le banc de test est opérationnel.
 
-**Prochain pas immédiat** : PokerTH + clé Mistral → J0 clos → ouverture J1 (perception).
+**Prochain pas immédiat** : confirmation visuelle PokerTH par l'utilisateur → J0 100 % clos → ouverture J1 (perception : capture PokerTH → état table JSON).
+
+**Note technique à retenir** : `mistralai 2.4.1` expose `Mistral` via `from mistralai.client.sdk import Mistral`, pas le top-level.
 
 ---
 

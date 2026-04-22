@@ -51,6 +51,7 @@ sessions/
 data/templates/raw/
 data/sessions/
 data/cache/
+data/captures/
 
 # Modèles locaux (Ollama / VLM)
 models/
