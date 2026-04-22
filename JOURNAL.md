@@ -16,6 +16,24 @@
 
 ---
 
+## 2026-04-22 — J0 : environnement Python prêt
+
+- **État** : validation réelle côté environnement dev.
+- **Ce qui a été fait** :
+  - `pyproject.toml` écrit (Python 3.12, deps de base + extras `dev`/`ocr`/`browser`).
+  - Squelette `src/ghost_poker/` créé avec sous-modules (`perception`, `brain`, `control`, `orchestrator`, `utils`).
+  - `scripts/smoke_test.py` pour vérifier que toutes les deps de base importent.
+  - `README.md` minimal pointant sur MASTER / ROADMAP / JOURNAL.
+  - `uv sync` : Python 3.12 téléchargé, 37 paquets installés, `ghost_poker` installé en editable.
+- **Ce qui a été observé** :
+  - `uv run python scripts/smoke_test.py` → 10/10 OK (mss, cv2, numpy, pyautogui, treys, loguru, mistralai, dotenv, pydantic, ghost_poker).
+- **Ce qui reste à vérifier pour clôturer J0** :
+  - Installation PokerTH (manuel, utilisateur).
+  - Création clé API Mistral dans `.env` (manuel, utilisateur).
+- **Commit(s) liés** : à créer maintenant.
+
+---
+
 ## 2026-04-22 — Ouverture du projet + premier push
 
 - **État** : repo modifié + distant aligné. Pas de code runtime à valider.

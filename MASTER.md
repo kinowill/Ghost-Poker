@@ -137,12 +137,14 @@ Dans l'ordre de priorité :
 **Phase** : J0 — Bootstrap projet.
 
 - ✅ MASTER / ROADMAP / JOURNAL / .gitignore / .env.example créés.
-- ✅ Dépôt git initialisé, remote `kinowill/Ghost-Poker` ajouté, premier push effectué (commit `c4f40d3` sur `main`).
-- ⏳ Installation environnement Python + `uv` + deps — non commencée.
-- ⏳ Installation PokerTH (banc de test A1) — non commencée.
-- ⏳ Clé API Mistral (free tier) — non créée.
+- ✅ Dépôt git initialisé, remote `kinowill/Ghost-Poker` ajouté, premier push (commit `c4f40d3`).
+- ✅ `pyproject.toml` + squelette `src/ghost_poker/` + `scripts/smoke_test.py` + `README.md`.
+- ✅ `uv sync` OK (Python 3.12 installé via uv, 37 paquets, ghost_poker en editable).
+- ✅ Smoke test 10/10 (mss, cv2, numpy, pyautogui, treys, loguru, mistralai, dotenv, pydantic, ghost_poker).
+- ⏳ Installation PokerTH (banc de test A1) — à faire manuellement.
+- ⏳ Clé API Mistral (free tier) — à créer et coller dans `.env`.
 
-**Prochain pas immédiat** : suite de J0 — installer Python 3.12 + uv + deps, PokerTH, créer la clé Mistral.
+**Prochain pas immédiat** : PokerTH + clé Mistral → J0 clos → ouverture J1 (perception).
 
 ---
 

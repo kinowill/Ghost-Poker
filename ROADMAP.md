@@ -10,7 +10,7 @@
 
 ## Phase A1 — Bot joue en play money offline (PokerTH)
 
-### J0 — Bootstrap ⏳
+### J0 — Bootstrap 🔄
 
 **But** : environnement de dev prêt, pas une ligne de logique métier.
 
