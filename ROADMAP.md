@@ -10,7 +10,7 @@
 
 ## Phase A1 — Bot joue en play money offline (PokerTH)
 
-### J0 — Bootstrap 🔄
+### J0 — Bootstrap ✅
 
 **But** : environnement de dev prêt, pas une ligne de logique métier.
 
@@ -25,7 +25,7 @@
 
 ---
 
-### J1 — Perception : capture + OCR → état table JSON ⏳
+### J1 — Perception : capture + OCR → état table JSON 🔄
 
 **But** : depuis une fenêtre PokerTH ouverte, produire un dict Python décrivant
 l'état exact de la table (cartes, stacks, pot, blinds, actions possibles, joueur à parler).

@@ -32,8 +32,10 @@
   - PokerTH installé, pas encore lancé visuellement (à confirmer par l'utilisateur).
   - Note technique : `mistralai 2.4.1` expose `Mistral` via `mistralai.client.sdk.Mistral` (pas `from mistralai import Mistral`). Import à retenir pour la suite.
 - **Ce qui reste à vérifier pour clôturer J0 à 100 %** :
-  - Utilisateur lance PokerTH une fois → confirme qu'une table s'affiche et qu'il peut démarrer une partie IA locale.
-- **Commit(s) liés** : à créer maintenant.
+  - ✅ Utilisateur a lancé PokerTH, table fonctionnelle, partie IA locale jouable.
+- **Commit(s) liés** : `506aab4`, `aea4f80`. README affiné par utilisateur (`8f18380`).
+
+**→ J0 clos. Ouverture J1 : perception.**
 
 ---
 

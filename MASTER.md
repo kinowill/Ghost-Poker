@@ -134,21 +134,16 @@ Dans l'ordre de priorité :
 ## 7. État courant (à maintenir à jour)
 
 **Date** : 2026-04-22
-**Phase** : J0 — Bootstrap projet.
+**Phase** : J1 — Perception (capture + OCR → état table JSON).
 
-- ✅ MASTER / ROADMAP / JOURNAL / .gitignore / .env.example / README créés.
-- ✅ Dépôt git initialisé, remote `kinowill/Ghost-Poker`, push OK.
-- ✅ `pyproject.toml` + squelette `src/ghost_poker/` + scripts.
-- ✅ `uv sync` OK (Python 3.12 + 37 paquets, `ghost_poker` en editable).
-- ✅ Smoke test 10/10 imports.
-- ✅ PokerTH 2.0.6 installé (winget).
-- ✅ Clé Mistral créée + dans `.env` local (gitignored). Accès à `mistral-medium-latest` confirmé par appel `models.list()`.
-- ✅ Capture écran mss OK (1920×1080).
-- ⏳ **Validation utilisateur** : lancer PokerTH une fois et démarrer une partie IA locale pour confirmer que le banc de test est opérationnel.
+**J0 clos ✅** (toutes cases cochées, PokerTH confirmé fonctionnel par l'utilisateur).
 
-**Prochain pas immédiat** : confirmation visuelle PokerTH par l'utilisateur → J0 100 % clos → ouverture J1 (perception : capture PokerTH → état table JSON).
+**Prochain pas immédiat** : J1.1 — capturer une image de référence de la table PokerTH (layout figé), puis calibrer les zones d'intérêt (cartes communes, cartes héros, stacks, pot, boutons).
 
-**Note technique à retenir** : `mistralai 2.4.1` expose `Mistral` via `from mistralai.client.sdk import Mistral`, pas le top-level.
+**Notes techniques à retenir** :
+- `mistralai 2.4.1` : `from mistralai.client.sdk import Mistral` (pas le top-level).
+- Résolution écran utilisateur : 1920×1080.
+- PokerTH installé via winget (`PokerTH.PokerTH` 2.0.6).
 
 ---
 
