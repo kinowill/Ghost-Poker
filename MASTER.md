@@ -136,13 +136,13 @@ Dans l'ordre de priorité :
 **Date** : 2026-04-22
 **Phase** : J0 — Bootstrap projet.
 
-- ✅ MASTER / ROADMAP / JOURNAL créés (session du 2026-04-22).
+- ✅ MASTER / ROADMAP / JOURNAL / .gitignore / .env.example créés.
+- ✅ Dépôt git initialisé, remote `kinowill/Ghost-Poker` ajouté, premier push effectué (commit `c4f40d3` sur `main`).
 - ⏳ Installation environnement Python + `uv` + deps — non commencée.
 - ⏳ Installation PokerTH (banc de test A1) — non commencée.
-- ⏳ Dépôt git — non initialisé.
 - ⏳ Clé API Mistral (free tier) — non créée.
 
-**Prochain pas immédiat** : J0 — bootstrap (voir ROADMAP.md).
+**Prochain pas immédiat** : suite de J0 — installer Python 3.12 + uv + deps, PokerTH, créer la clé Mistral.
 
 ---
 
