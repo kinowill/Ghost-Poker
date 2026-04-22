@@ -1,7 +1,7 @@
 # Ghost-Poker
 
 Agent IA pour poker en ligne. Perception hybride (DOM + vision), décision
-hybride (solver GTO + LLM meta), contrôle souris humain.
+hybride (solver GTO + LLM meta), contrôle souris.
 
 **Statut** : en cours de bootstrap (J0). Voir [`MASTER.md`](MASTER.md) pour le cadrage complet et [`ROADMAP.md`](ROADMAP.md) pour les jalons.
 
