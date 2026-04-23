@@ -138,11 +138,13 @@ Dans l'ordre de priorité :
 
 **J0 clos ✅** (toutes cases cochées, PokerTH confirmé fonctionnel par l'utilisateur).
 
-**J1.1 + J1.2 validés** : capture de référence réalisée, layout recalibré puis validé visuellement en plein écran. `data/config/pokerth_layout.json` contient 14 zones + métadonnées de référence.
+**J1.1 + J1.2 validés** : capture de référence réalisée, layout recalibré puis validé visuellement en plein écran. `data/config/pokerth_layout.json` contient maintenant 15 zones, dont `table_meta`, plus les métadonnées de référence.
 
-**J1.3 validé en réel** : `scripts/debug_perception.py` capture bien la table PokerTH ouverte, découpe les 14 zones, sauvegarde les crops et écrit un résumé JSON sans alerte de géométrie.
+**J1.3 validé en réel** : `scripts/debug_perception.py` capture bien la table PokerTH ouverte, découpe les 15 zones, sauvegarde les crops et écrit un résumé JSON sans alerte de géométrie.
 
-**Prochain pas immédiat** : passer de la géométrie validée à une première lecture utile du contenu (cartes, pot, stacks, actions). La stack OCR prévue (`paddleocr`, `paddlepaddle`) est maintenant installée ; il reste à l'exploiter dans le code.
+**Première lecture OCR branchée, validation partielle** : `src/ghost_poker/perception/ocr.py` et `table_state.py` lisent maintenant une première version structurée de `table_meta`, `pot`, `actions` et des sièges. Validation réelle observée sur PokerTH : `street=Preflop`, `game=1`, `hand=1`, `pot.total=0`, `pot.bets=110`, `seat_1..seat_10` relus avec noms/stacks cohérents sur la main testée, et panneau d'action relu correctement (`All-In/F4`, presets `33/50/100`, `Raise/F3/$40`, `Call/F2/$20`, `Fold/F1`).
+
+**Prochain pas immédiat** : stabiliser cette lecture sur plusieurs mains consécutives via le watcher léger, puis traiter les éléments encore incomplets ou non fiables (cartes hero/board, historique d'action détaillé, éventuelle zone `journal_log` optionnelle pour PokerTH).
 
 **Notes techniques à retenir** :
 - `mistralai 2.4.1` : `from mistralai.client.sdk import Mistral` (pas le top-level).
@@ -151,10 +153,16 @@ Dans l'ordre de priorité :
 - Le layout est calibré relativement à la fenêtre PokerTH, pas au plein écran.
 - Mapping observé sur cette table : `seat_10` = `Human Player`, avec `hero_cards` et `actions` au bas de la fenêtre.
 - La capture travaille maintenant sur la zone client PokerTH (sans bordures/barre de titre).
+- La capture remet PokerTH au premier plan juste avant le screenshot pour éviter qu'une fenêtre terminal/éditeur ne pollue les crops.
 - Limite actuelle : un resize de fenêtre apres calibration peut invalider les zones ; tant qu'on n'a pas d'ancrages visuels, il faut recalibrer a la taille voulue.
 - Géométrie de référence actuellement validée : `1920×1032` (plein écran/maximisé PokerTH sur ce poste).
 - J1.3 observé en réel sur ce poste : `window_rect=1920×1032`, `geometry_warning=null`, crops cohérents au moins pour `hero_cards`, `board`, `actions`, `seat_10`.
+- Run OCR de référence actuel : `data/captures/perception_debug/20260423-140757/summary.json`.
+- Validation compacte en continu disponible via `scripts/watch_table_state.py` ; run réel de référence : lecture compacte OK sur PokerTH (`Preflop`, `pot=0/110`, `Raise/Call/Fold` avec hotkeys).
+- Validation utilisateur supplémentaire : le watcher a suivi une même main de `Preflop` à `Flop` puis `Turn`, puis a observé plusieurs changements de `hand_number` et `game_number` avec états globalement cohérents.
+- Point technique observé sur un lancement utilisateur standard : Paddle peut encore télécharger ses modèles vers `C:\Users\ArtLi\.paddlex\...` si l'environnement shell n'est pas forcé ; ce n'est pas bloquant pour la lecture, mais l'isolation complète des caches au niveau projet n'est pas encore garantie.
 - Dépendances OCR installées et importables dans l'environnement projet : `paddleocr 3.5.0`, `paddle 3.3.1`.
+- Contrainte produit confirmée par l'utilisateur : sur les rooms avec temps limité, la décision finale devra inclure non seulement `quoi faire`, mais aussi `quand le faire` et `s'il faut pré-sélectionner une auto-action` (`check`, `call`, etc.) quand l'interface le permet.
 
 ---
 
@@ -180,6 +188,7 @@ Aucun "J terminé" sans validation réelle documentée dans JOURNAL.md.
 - **Hybride IA** (local gratuit pour perception/solver, API free tier pour LLM).
 - **Contrôle OS réel** (pyautogui + Bézier), pas Playwright visible.
 - **A1 avant A2**, non négociable : A2 construit sur des briques validées.
+- **Timing d'action et pré-actions** : le moteur final devra gérer un budget temps, des profils de réaction humains non fixes, et l'usage optionnel d'auto-actions quand elles existent sur la room cible.
 
 ---
 

@@ -1,5 +1,28 @@
 # Ghost-Poker — Journal de validation
 
+## 2026-04-23 — J1.4 bis : watcher validé sur plusieurs mains
+
+- **État** : repo modifié + validation réelle supplémentaire effectuée sur la stabilité partielle du watcher.
+- **Ce qui a été fait** :
+  - L'utilisateur a laissé tourner `uv run python scripts/watch_table_state.py --interval 0.75` sur PokerTH.
+  - Observation continue sur plusieurs mains sans regénérer d'artefacts lourds.
+- **Ce qui a été observé** :
+  - La lecture a suivi une main complète de `Preflop` à `Flop` puis `Turn` sur `game_number=1`, `hand_number=1`.
+  - Le watcher a ensuite observé des changements de `hand_number` et de `game_number` : `hand_number=2`, `hand_number=3`, puis `game_number=2`.
+  - Les transitions utiles sont cohérentes :
+    - `Preflop` : `pot_total=0`, `pot_bets=110`, `Raise/F3/$40`, `Call/F2/$20`, `Fold/F1`
+    - `Flop` : `pot_total=400`, `pot_bets=0`, `Bet/F3/$20`, `Check/F2`
+    - `Turn` : `pot_total=600`, puis `pot_bets=200`, puis `pot_bets=760`
+  - Le héros reste correctement identifié sur plusieurs états valides (`Human Player`) et son stack suit la main (`5000` → `4960` → `4940` → `4900`).
+  - Des frames OCR manifestement polluées ont aussi été observées (`hero_name` lisant du texte hors table, champs `null` en rafale) : le watcher va maintenant ignorer ces snapshots impossibles au lieu de les émettre.
+  - Sur le lancement utilisateur standard, Paddle a téléchargé ses modèles dans `C:\Users\ArtLi\.paddlex\...` ; la lecture fonctionne, mais les caches ne sont pas encore totalement forcés dans le projet.
+- **Ce qui reste à vérifier** :
+  - Confirmer que le filtrage du watcher supprime bien le bruit sans masquer de vrais changements de main.
+  - Stabiliser ensuite la lecture des cartes et décider si PokerTH mérite une zone `journal_log`.
+- **Commit(s) liés** : aucun pour l'instant, travail local non commité.
+
+---
+
 > Trace des validations **réelles**. Une entrée = un événement observé,
 > pas un événement prévu. Ordre antéchronologique (plus récent en haut).
 >
@@ -13,6 +36,46 @@
 > - Ce qui reste à vérifier :
 > - Commit(s) liés :
 > ```
+
+---
+
+## 2026-04-23 — J1.4 : zone `table_meta` + première lecture OCR partielle
+
+- **État** : repo modifié + validation réelle partielle effectuée sur la lecture OCR J1.
+- **Ce qui a été fait** :
+  - Recalibration du layout PokerTH pour ajouter la zone `table_meta` (`Preflop / Game: X / Hand: Y`) dans `data/config/pokerth_layout.json`.
+  - Ajout d'un moteur OCR local (`src/ghost_poker/perception/ocr.py`) et d'une première lecture structurée `TableState` (`src/ghost_poker/perception/table_state.py`), branchée dans `scripts/debug_perception.py`.
+  - Durcissement du parsing OCR pour privilégier les vrais noms de sièges (`Player X`, `Human Player`) et les stacks monétaires, au lieu de confondre noms/actions/blinds.
+  - Correction de la capture : `capture_pokerth()` remet maintenant PokerTH au premier plan avant screenshot pour éviter qu'une fenêtre Codex/terminal masque le pot ou le siège héros.
+- **Ce qui a été observé** :
+  - Un premier run OCR a été pollué par la fenêtre Codex superposée à PokerTH ; le problème a été diagnostiqué visuellement dans `data/captures/perception_debug/20260423-140610/window.png`.
+  - Après correction de la capture, run réel OK dans `data/captures/perception_debug/20260423-140757/` : `geometry_warning=null`, `table_meta.street=Preflop`, `game_number=1`, `hand_number=1`, `pot.total=0`, `pot.bets=110`.
+  - Les sièges remontent correctement sur cette main testée : `seat_1..seat_9 = Player 1..9`, `seat_10 = Human Player`, avec stacks cohérents (`5000`, `4990`, `4980`, etc.).
+  - Le bug de hotkeys venait du parseur, pas de l'OCR : l'association par ordre de lecture produisait de faux couples (`F4` collé à `Raise`). Correction appliquée : association spatiale par position dans le crop, verrouillée par un test direct `tests/perception/test_table_state.py`.
+  - Run réel de contrôle OK dans `data/captures/perception_debug/20260423-150522/` : actions relues correctement sur cette main (`All-In/F4`, presets `33/50/100`, `Raise/F3/$40`, `Call/F2/$20`, `Fold/F1`).
+  - `scripts/watch_table_state.py` a été ajouté puis validé en réel sur PokerTH avec `--max-events 1`, pour surveiller un état compact sans générer d'artefacts lourds à chaque lecture.
+  - Les cartes héros/board ne sont pas encore interprétées, volontairement, car l'OCR n'est pas la bonne méthode pour elles.
+- **Ce qui reste à vérifier** :
+  - Confirmer la stabilité de cette lecture sur plusieurs mains consécutives, pas sur un seul instantané.
+  - Décider si le bloc `Journal` PokerTH doit devenir une zone optionnelle `journal_log` pour reconstruire l'historique d'action.
+  - Identifier si PokerTH expose aussi des boutons de pré-action et/ou un signal temporel utile, en vue des futures rooms à temps limité.
+  - Implémenter la lecture des cartes (template matching ou autre méthode dédiée), distincte de l'OCR.
+- **Commit(s) liés** : aucun pour l'instant, travail local non commité.
+
+---
+
+## 2026-04-23 — Décision produit : budget temps humain + auto-actions à prévoir
+
+- **État** : vérité projet mise à jour, pas de validation runtime nouvelle.
+- **Ce qui a été fait** :
+  - Contrainte explicitée par l'utilisateur : sur les interfaces avec temps limité, le bot ne devra pas seulement choisir une action correcte, mais aussi gérer un temps de réaction plausible et l'usage éventuel d'auto-actions (`check`, `call`, etc.).
+  - La roadmap J1/J4/J5 et le document maître ont été alignés pour porter cette contrainte dès maintenant.
+- **Ce qui a été observé** :
+  - Cette contrainte impacte au moins trois briques futures : perception (timer + pré-actions si présentes), décision (politique temporelle par type de spot) et contrôle (garde-fou anti-timeout).
+- **Ce qui reste à vérifier** :
+  - Si PokerTH expose des éléments visuels suffisamment stables pour servir de terrain d'essai sur ce sujet.
+  - À quel moment de A1 il est pertinent d'implémenter les auto-actions : dès que la perception les voit, ou après la boucle complète J5.
+- **Commit(s) liés** : aucun pour l'instant, travail local non commité.
 
 ---
 

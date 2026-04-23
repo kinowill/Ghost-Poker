@@ -13,6 +13,7 @@ bordures et à la barre de titre.
 from __future__ import annotations
 
 import ctypes
+import time
 from dataclasses import dataclass
 from ctypes import wintypes
 
@@ -23,6 +24,7 @@ import pygetwindow as gw
 # On matche sur le *début* du titre pour éviter de capturer un terminal, un
 # navigateur ou un éditeur dont le titre contient accidentellement "PokerTH".
 POKERTH_TITLE_PREFIX = "PokerTH"
+_SW_RESTORE = 9
 
 
 @dataclass(frozen=True)
@@ -78,12 +80,8 @@ def _get_client_rect(win: object) -> WindowRect:
     return WindowRect(left=top_left.x, top=top_left.y, width=width, height=height)
 
 
-def find_pokerth_window() -> WindowRect:
-    """Retourne le rectangle écran de la zone client PokerTH active.
-
-    Lève PokerTHNotFoundError si aucune fenêtre ne correspond ou si
-    la fenêtre est minimisée.
-    """
+def _select_pokerth_window() -> object:
+    """Retourne la meilleure fenêtre PokerTH candidate."""
     candidates = [
         w for w in gw.getAllWindows()
         if w.title.startswith(POKERTH_TITLE_PREFIX) and w.visible
@@ -96,6 +94,29 @@ def find_pokerth_window() -> WindowRect:
     win = max(candidates, key=lambda w: w.width * w.height)
     if win.isMinimized:
         raise PokerTHNotFoundError("Fenêtre PokerTH minimisée.")
+    return win
+
+
+def _focus_window(win: object) -> None:
+    """Tente de remettre PokerTH au premier plan avant capture écran."""
+    hwnd = getattr(win, "_hWnd", None)
+    if hwnd is None:
+        return
+
+    user32 = ctypes.windll.user32
+    user32.ShowWindow(hwnd, _SW_RESTORE)
+    user32.BringWindowToTop(hwnd)
+    user32.SetForegroundWindow(hwnd)
+    time.sleep(0.15)
+
+
+def find_pokerth_window() -> WindowRect:
+    """Retourne le rectangle écran de la zone client PokerTH active.
+
+    Lève PokerTHNotFoundError si aucune fenêtre ne correspond ou si
+    la fenêtre est minimisée.
+    """
+    win = _select_pokerth_window()
     return _get_client_rect(win)
 
 
@@ -116,6 +137,8 @@ def capture_window(rect: WindowRect) -> np.ndarray:
 
 def capture_pokerth() -> tuple[np.ndarray, WindowRect]:
     """Trouve PokerTH et capture son contenu. Retourne (image BGR, rect)."""
-    rect = find_pokerth_window()
+    win = _select_pokerth_window()
+    _focus_window(win)
+    rect = _get_client_rect(win)
     image = capture_window(rect)
     return image, rect

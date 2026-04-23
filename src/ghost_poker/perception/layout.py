@@ -25,6 +25,7 @@ HERO_SEAT_NAME = "seat_10"
 ZONE_NAMES: tuple[str, ...] = (
     "hero_cards",
     "board",
+    "table_meta",
     "pot",
     "seat_1",
     "seat_2",
@@ -49,6 +50,11 @@ ZONE_DESCRIPTIONS: dict[str, str] = {
     "board": (
         "Le board : les 5 emplacements des cartes communes au centre de la table. "
         "Meme si elles ne sont pas encore sorties, trace la box sur tout le rail horizontal."
+    ),
+    "table_meta": (
+        "Le bloc texte a droite du board qui affiche la street actuelle "
+        "(Preflop / Flop / Turn / River) ainsi que 'Game: X' et 'Hand: Y'. "
+        "Trace une box sur tout ce bloc texte."
     ),
     "pot": (
         "Le POT : le texte qui affiche le montant du pot au centre de la table "

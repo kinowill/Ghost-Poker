@@ -34,12 +34,15 @@ l'état exact de la table (cartes, stacks, pot, blinds, actions possibles, joueu
 - Template matching cartes (`data/templates/cards/`).
 - OCR stacks / pot / blinds via PaddleOCR.
 - Détection joueur actif (bordure / couleur).
+- Prévoir dès la perception les éléments utiles au budget temps et aux pré-actions quand ils existent (timer, boutons auto-check/auto-call/auto-fold, etc.).
 - Sortie normalisée : `TableState` (dataclass).
 - Script `scripts/debug_perception.py` qui affiche l'état lu en temps réel.
 
 **Critère de validation** : 20 mains consécutives, état JSON correct à 100 % sur toutes les rues. Diffs visibles dans `JOURNAL.md`.
 
-**État intermédiaire au 2026-04-23** : capture de référence + calibration du layout validées visuellement en plein écran. La capture vise la zone client PokerTH et le layout versionné contient maintenant une taille de référence (`1920×1032`). `scripts/debug_perception.py` est validé en réel sur table ouverte. La stack OCR prévue est maintenant installée ; la prochaine étape utile est d'implémenter la première lecture réelle du contenu.
+**État intermédiaire au 2026-04-23** : capture de référence + calibration du layout validées visuellement en plein écran. La capture vise la zone client PokerTH et le layout versionné contient maintenant une taille de référence (`1920×1032`) ainsi qu'une zone `table_meta`. `scripts/debug_perception.py` est validé en réel sur table ouverte et produit maintenant un premier `TableState` partiel : `table_meta`, `pot`, `actions` et `seat_1..seat_10` remontent sur la main testée. Le mapping des actions a été corrigé par position réelle dans le crop (hotkeys + montants), et `scripts/watch_table_state.py` permet maintenant de surveiller l'état compact sur plusieurs mains. Les cartes (`hero_cards`, `board`) ne sont pas encore lues et la robustesse doit être confirmée sur plusieurs mains.
+
+**Complément de validation** : le watcher a déjà suivi une même main de `Preflop` à `Flop` puis `Turn`, puis plusieurs changements de `hand_number` et `game_number`. Le prochain vrai critère n'est plus "voit-on des changements ?", mais "les voit-on sans bruit parasite sur une séquence plus longue ?".
 
 ---
 
@@ -76,6 +79,8 @@ l'état exact de la table (cartes, stacks, pot, blinds, actions possibles, joueu
 - Vitesse variable (ease-in/out).
 - Micro-pauses aléatoires avant clic.
 - Typage des montants (clavier + backspace occasionnel).
+- Budget temps et garde-fou anti-timeout : le bot doit toujours agir avant la limite, même si la réflexion "humaine" simulée varie.
+- Support des auto-actions quand l'interface les propose (`auto-check`, `call any`, etc.), sans les rendre obligatoires.
 - Test : 100 clics, 0 raté, distribution des trajectoires visuellement humaine.
 
 **Critère de validation** : 10 mains jouées manuellement via le module de contrôle, 0 erreur d'action.
@@ -88,6 +93,8 @@ l'état exact de la table (cartes, stacks, pot, blinds, actions possibles, joueu
 
 - Orchestrateur : boucle d'état, anti-double-action, gestion des transitions de rue.
 - Solver seul (pas encore de LLM meta).
+- Politique temporelle : chaque décision doit sortir avec une fenêtre de réaction plausible (spot simple, spot de value, bluff, tank court, urgence proche timeout).
+- Politique de pré-action : si l'interface permet une auto-action cohérente et utile, le bot doit pouvoir la sélectionner avant son tour.
 - Kill switch clavier (ex. `F12` → stop immédiat).
 - Logs structurés `loguru` : chaque décision + état + sizing + raisonnement.
 
@@ -126,4 +133,4 @@ de les spécifier finement tant que A1 n'a pas révélé ses points durs.
 
 ## Prochaine action
 
-**J1 — Perception.** Brancher la première lecture utile (pot / board / actions / sièges) en s'appuyant sur la stack OCR désormais installée.
+**J1 – Perception.** Utiliser `watch_table_state.py` pour valider la stabilité sur plusieurs mains (pot / actions / sièges / `table_meta`), puis décider si PokerTH mérite des zones optionnelles `journal_log` et `timer/pre-actions` pour préparer le budget temps et les actions automatiques.

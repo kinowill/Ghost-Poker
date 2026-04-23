@@ -19,6 +19,7 @@ from loguru import logger
 
 from ghost_poker.perception.layout import LAYOUT_PATH, Layout
 from ghost_poker.perception.regions import extract_regions
+from ghost_poker.perception.table_state import read_table_state
 from ghost_poker.perception.window import PokerTHNotFoundError, capture_pokerth
 
 
@@ -59,6 +60,13 @@ def main() -> int:
         "window": str(window_path),
         "zones": zone_artifacts,
     }
+
+    try:
+        table_state = read_table_state(frame)
+        summary["table_state"] = table_state.to_dict()
+    except Exception as e:  # noqa: BLE001
+        summary["table_state_error"] = str(e)
+        logger.exception("Lecture OCR/etat de table echouee")
 
     summary_path = out_dir / "summary.json"
     summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")

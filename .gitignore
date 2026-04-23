@@ -36,6 +36,8 @@ htmlcov/
 *.swo
 .DS_Store
 Thumbs.db
+.cache/
+.paddlex/
 
 # Claude Code local (on garde la porte ouverte pour settings.json partagé plus tard)
 .claude/settings.local.json
