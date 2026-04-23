@@ -39,6 +39,8 @@ l'état exact de la table (cartes, stacks, pot, blinds, actions possibles, joueu
 
 **Critère de validation** : 20 mains consécutives, état JSON correct à 100 % sur toutes les rues. Diffs visibles dans `JOURNAL.md`.
 
+**État intermédiaire au 2026-04-23** : capture de référence + calibration du layout validées visuellement en plein écran. La capture vise la zone client PokerTH et le layout versionné contient maintenant une taille de référence (`1920×1032`). `scripts/debug_perception.py` est validé en réel sur table ouverte. La stack OCR prévue est maintenant installée ; la prochaine étape utile est d'implémenter la première lecture réelle du contenu.
+
 ---
 
 ### J2 — Solver préflop ⏳
@@ -124,4 +126,4 @@ de les spécifier finement tant que A1 n'a pas révélé ses points durs.
 
 ## Prochaine action
 
-**J0 — Bootstrap.** Rien d'autre ne commence tant que J0 n'est pas validé.
+**J1 — Perception.** Brancher la première lecture utile (pot / board / actions / sièges) en s'appuyant sur la stack OCR désormais installée.

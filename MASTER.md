@@ -133,17 +133,28 @@ Dans l'ordre de priorité :
 
 ## 7. État courant (à maintenir à jour)
 
-**Date** : 2026-04-22
+**Date** : 2026-04-23
 **Phase** : J1 — Perception (capture + OCR → état table JSON).
 
 **J0 clos ✅** (toutes cases cochées, PokerTH confirmé fonctionnel par l'utilisateur).
 
-**Prochain pas immédiat** : J1.1 — capturer une image de référence de la table PokerTH (layout figé), puis calibrer les zones d'intérêt (cartes communes, cartes héros, stacks, pot, boutons).
+**J1.1 + J1.2 validés** : capture de référence réalisée, layout recalibré puis validé visuellement en plein écran. `data/config/pokerth_layout.json` contient 14 zones + métadonnées de référence.
+
+**J1.3 validé en réel** : `scripts/debug_perception.py` capture bien la table PokerTH ouverte, découpe les 14 zones, sauvegarde les crops et écrit un résumé JSON sans alerte de géométrie.
+
+**Prochain pas immédiat** : passer de la géométrie validée à une première lecture utile du contenu (cartes, pot, stacks, actions). La stack OCR prévue (`paddleocr`, `paddlepaddle`) est maintenant installée ; il reste à l'exploiter dans le code.
 
 **Notes techniques à retenir** :
 - `mistralai 2.4.1` : `from mistralai.client.sdk import Mistral` (pas le top-level).
 - Résolution écran utilisateur : 1920×1080.
 - PokerTH installé via winget (`PokerTH.PokerTH` 2.0.6).
+- Le layout est calibré relativement à la fenêtre PokerTH, pas au plein écran.
+- Mapping observé sur cette table : `seat_10` = `Human Player`, avec `hero_cards` et `actions` au bas de la fenêtre.
+- La capture travaille maintenant sur la zone client PokerTH (sans bordures/barre de titre).
+- Limite actuelle : un resize de fenêtre apres calibration peut invalider les zones ; tant qu'on n'a pas d'ancrages visuels, il faut recalibrer a la taille voulue.
+- Géométrie de référence actuellement validée : `1920×1032` (plein écran/maximisé PokerTH sur ce poste).
+- J1.3 observé en réel sur ce poste : `window_rect=1920×1032`, `geometry_warning=null`, crops cohérents au moins pour `hero_cards`, `board`, `actions`, `seat_10`.
+- Dépendances OCR installées et importables dans l'environnement projet : `paddleocr 3.5.0`, `paddle 3.3.1`.
 
 ---
 
