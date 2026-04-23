@@ -12,8 +12,8 @@
 ## 1. Nom et but
 
 **Ghost-Poker** — agent IA qui joue au poker en ligne de manière
-ultra optimisée, en percevant la table (DOM + vision) et en contrôlant
-la souris comme un humain.
+ultra optimisée, en percevant la table (DOM + vision) et en pilotant
+l'interface soit en assistance à la décision, soit en autonomie complète.
 
 **Cible finale (A2)** : jouer en argent réel sur rooms en ligne (Winamax, GG,
 PokerStars, PMU, etc.), furtivement, décisions GTO-correctes ajustées
@@ -37,8 +37,9 @@ change au passage A1 → A2.
 - **Conséquence opératoire** : v1 A1 reste 100 % safe (offline, play money,
   client libre). La phase A2 doit être traitée comme un **chantier R&D
   à part entière**, pas comme un simple toggle.
-- **Décision produit assumée** : l'utilisateur est informé, conscient,
-  et pilote. Ghost-Poker assiste le choix, ne le tranche pas.
+- **Décision produit assumée** : le produit devra exposer deux modes
+  explicites, `assist` (aide seulement) et `autonomous` (prise en main
+  100 % IA). Ce choix ne doit pas être implicite ni codé en dur.
 
 ---
 
@@ -55,16 +56,17 @@ change au passage A1 → A2.
 | DOM/réseau | `playwright` (mode passif) | Lecture client web quand DOM exploitable |
 | Évaluateur mains | `treys` | Hand strength, équités |
 | Solver | Moteur maison Python | Ranges préflop + Monte Carlo postflop v1, CFR-lite v2 |
-| LLM meta | `mistralai` SDK (free tier Mistral La Plateforme) | Lecture villain, ajustements exploitatifs |
-| LLM fallback | Groq API (Llama 3.3 70B free) | Si Mistral rate-limit |
-| Contrôle OS | `pyautogui` + courbes Bézier maison + jitter temporel | Clics humains |
+| LLM meta | Backend interchangeable (API ou local) | Lecture villain, ajustements exploitatifs |
+| Backend initial | `mistralai` SDK + Groq API | Point de départ pratique, pas dépendance figée |
+| Contrôle OS | `pyautogui` + courbes Bézier maison + jitter temporel | Exécution assistée ou autonome, avec gestes non robotiques |
 | Tests | `pytest` | Unitaires + intégration |
 | Logs | `loguru` | Journal structuré |
 
 **Hardware cible** (machine utilisateur) :
 Ryzen 5 5600H, 16 Go RAM, RTX 3050 Laptop 4 Go VRAM, SSD 477 Go, Windows 11.
 → Tout le local (OCR, CV, petits VLM quantisés, solver) passe.
-Gros LLM = API.
+Gros LLM = API au départ, mais l'architecture doit rester compatible avec
+des backends locaux si la machine ou la qualité le permettent.
 
 ---
 
@@ -82,7 +84,10 @@ Gros LLM = API.
                                               Décision (fold/call/raise/montant)
                                                       │
                                                       ▼
-                                          [Contrôle souris humain]
+                                  [Mode assist ou autonomous]
+                                                      |
+                                                      ▼
+                                  [Contrôle souris/clavier autonome]
 ```
 
 Boucle orchestrateur : poll perception → si état change → décider → agir → attendre.
@@ -104,8 +109,8 @@ C:\PROJETS\POKER\
 │   └── ghost_poker/
 │       ├── __init__.py
 │       ├── perception/    # vision + DOM + OCR
-│       ├── brain/         # solver + LLM meta
-│       ├── control/       # souris / clavier humains
+│       ├── brain/         # solver + couche meta backend-agnostic
+│       ├── control/       # exécution interface (assistée ou autonome)
 │       ├── orchestrator/  # boucle principale
 │       └── utils/         # logging, config
 ├── tests/
@@ -186,7 +191,9 @@ Aucun "J terminé" sans validation réelle documentée dans JOURNAL.md.
 - **Python** (écosystème poker + vision + ML mature).
 - **Hybride perception** (DOM quand dispo, vision sinon).
 - **Hybride décision** (solver pour GTO, LLM meta pour exploit).
-- **Hybride IA** (local gratuit pour perception/solver, API free tier pour LLM).
+- **Backend meta interchangeable** : aucune dépendance produit à Mistral/Groq seuls ; l'API ou le modèle local doivent rester remplaçables.
+- **Hybride IA** (local gratuit pour perception/solver, API free tier pour démarrer la meta).
+- **Mode opératoire sélectionnable** : `assist` ou `autonomous`, pas un seul mode imposé.
 - **Contrôle OS réel** (pyautogui + Bézier), pas Playwright visible.
 - **A1 avant A2**, non négociable : A2 construit sur des briques validées.
 - **Timing d'action et pré-actions** : le moteur final devra gérer un budget temps, des profils de réaction humains non fixes, et l'usage optionnel d'auto-actions quand elles existent sur la room cible.
@@ -196,7 +203,7 @@ Aucun "J terminé" sans validation réelle documentée dans JOURNAL.md.
 ## 10. Budget et contraintes
 
 - **Temps** : pas de deadline, mais le plus vite possible.
-- **Argent** : API free tiers uniquement au départ (Mistral + Groq).
-  Si ça cale sur rate limits en v2, on évalue le passage payant.
+- **Argent** : démarrage avec backends gratuits/pratiques (`Mistral`, `Groq`) mais sans verrouiller l'architecture à eux seuls.
+  Si ça cale en v2, on doit pouvoir brancher un autre provider API ou un backend local.
 - **Compute local** : 4 Go VRAM → pas de LLM local lourd,
   OCR + CV + petits VLM seulement.

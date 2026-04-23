@@ -71,19 +71,20 @@ l'état exact de la table (cartes, stacks, pot, blinds, actions possibles, joueu
 
 ---
 
-### J4 — Contrôle souris humain ⏳
+### J4 — Contrôle interface assisté/autonome ⏳
 
-**But** : exécuter `fold/call/raise/montant` dans PokerTH via souris, de façon non-robotique.
+**But** : exécuter `fold/call/raise/montant` dans PokerTH via souris/clavier, avec un mode `assist` et un mode `autonomous`, sans gestes robotiques.
 
 - Courbes Bézier 2D (départ → cible) avec points de contrôle jittered.
 - Vitesse variable (ease-in/out).
 - Micro-pauses aléatoires avant clic.
 - Typage des montants (clavier + backspace occasionnel).
+- Sélecteur de mode produit : aide à la décision seule ou prise en main 100 % IA.
 - Budget temps et garde-fou anti-timeout : le bot doit toujours agir avant la limite, même si la réflexion "humaine" simulée varie.
 - Support des auto-actions quand l'interface les propose (`auto-check`, `call any`, etc.), sans les rendre obligatoires.
 - Test : 100 clics, 0 raté, distribution des trajectoires visuellement humaine.
 
-**Critère de validation** : 10 mains jouées manuellement via le module de contrôle, 0 erreur d'action.
+**Critère de validation** : 10 mains jouées via le module de contrôle dans chacun des deux modes, 0 erreur d'action.
 
 ---
 
@@ -102,16 +103,17 @@ l'état exact de la table (cartes, stacks, pot, blinds, actions possibles, joueu
 
 ---
 
-### J6 — LLM meta (Mistral) pour ajustements exploitatifs ⏳
+### J6 — LLM meta backend-agnostic pour ajustements exploitatifs ⏳
 
 **But** : couche "lecture des adversaires" par-dessus le solver.
 
 - À la fin de chaque main, stats adversaires mises à jour (VPIP, PFR, agression, showdowns observés).
-- Toutes les N mains (ou sur spot critique), appel Mistral avec contexte condensé → retourne des overrides exploitatifs (ex : "HJ fold trop, 3bet light depuis BTN").
+- Toutes les N mains (ou sur spot critique), appel du backend meta configuré avec contexte condensé → retourne des overrides exploitatifs (ex : "HJ fold trop, 3bet light depuis BTN").
 - Solver applique les overrides comme biais sur décisions marginales.
-- Cache + rate-limit pour tenir sur free tier.
+- Adaptateur de provider pour accepter aussi bien une clé API qu'un backend local.
+- Cache + rate-limit pour tenir sur free tier quand on utilise un provider distant.
 
-**Critère de validation** : A/B session sans LLM vs avec LLM sur 500 mains, LLM ≥ solver pur sur winrate bb/100 (ou au pire égal sans régression).
+**Critère de validation** : A/B session sans LLM vs avec backend meta sur 500 mains, meta ≥ solver pur sur winrate bb/100 (ou au pire égal sans régression).
 
 ---
 
