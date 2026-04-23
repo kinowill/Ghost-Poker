@@ -54,6 +54,7 @@ data/templates/raw/
 data/sessions/
 data/cache/
 data/captures/
+data/logs/
 
 # Modèles locaux (Ollama / VLM)
 models/

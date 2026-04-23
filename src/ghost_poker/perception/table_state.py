@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
+from ghost_poker.perception.layout import HERO_SEAT_NAME
 from ghost_poker.perception.ocr import OCRLine, read_ocr_lines
 from ghost_poker.perception.regions import PerceptionFrame, ZoneCapture
 
@@ -15,6 +16,7 @@ _ACTION_LABELS = {"fold", "check", "call", "raise", "bet"}
 _HOTKEY_RE = re.compile(r"^F\d+$", re.IGNORECASE)
 _PERCENT_RE = re.compile(r"^(\d{1,3})%$")
 _PLAYER_NAME_RE = re.compile(r"^(human player|player \d+)$", re.IGNORECASE)
+_HERO_PLAYER_NAME = "Human Player"
 _IGNORED_NAME_TOKENS = {
     "dealer",
     "small",
@@ -307,33 +309,47 @@ def _parse_actions(lines: list[OCRLine]) -> ActionsState:
 
 def _parse_seat(seat_name: str, lines: list[OCRLine]) -> SeatState:
     state = SeatState(seat_name=seat_name, raw_lines=lines)
-    preferred_names: list[str] = []
-    fallback_names: list[str] = []
-    stack_candidates: list[int] = []
+    preferred_names: list[tuple[OCRLine, str]] = []
+    fallback_names: list[tuple[OCRLine, str]] = []
+    stack_candidates: list[tuple[OCRLine, int]] = []
+    selected_name_line: OCRLine | None = None
 
-    for text in _lines_to_texts(lines):
+    for line in lines:
+        text = line.text.strip()
         money = _extract_dollar_amount(text)
         if money is not None:
-            stack_candidates.append(money)
+            stack_candidates.append((line, money))
             continue
 
         if not _is_probable_player_name(text):
             continue
 
-        normalized = text.strip()
+        normalized = text
         if _PLAYER_NAME_RE.fullmatch(normalized):
-            preferred_names.append(normalized)
+            preferred_names.append((line, normalized))
         else:
-            fallback_names.append(normalized)
+            fallback_names.append((line, normalized))
 
     if preferred_names:
-        state.player_name = preferred_names[0]
+        selected_name_line, state.player_name = preferred_names[0]
     elif fallback_names:
-        fallback_names.sort(key=len, reverse=True)
-        state.player_name = fallback_names[0]
+        fallback_names.sort(key=lambda item: len(item[1]), reverse=True)
+        selected_name_line, state.player_name = fallback_names[0]
 
     if stack_candidates:
-        state.stack = max(stack_candidates)
+        if selected_name_line is None:
+            _, state.stack = max(stack_candidates, key=lambda item: item[1])
+        else:
+            def stack_score(item: tuple[OCRLine, int]) -> tuple[float, float]:
+                line, _ = item
+                delta_y = abs(_line_center_y(line) - _line_center_y(selected_name_line))
+                delta_x = abs(_line_center_x(line) - _line_center_x(selected_name_line))
+                return (delta_y, delta_x)
+
+            _, state.stack = min(stack_candidates, key=stack_score)
+
+    if seat_name == HERO_SEAT_NAME:
+        state.player_name = _HERO_PLAYER_NAME
 
     return state
 

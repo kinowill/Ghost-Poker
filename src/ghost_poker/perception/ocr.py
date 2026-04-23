@@ -23,11 +23,12 @@ def ensure_ocr_env() -> None:
     paddle_home.mkdir(parents=True, exist_ok=True)
     paddlex_home.mkdir(parents=True, exist_ok=True)
 
-    os.environ.setdefault("PADDLE_HOME", str(paddle_home))
-    os.environ.setdefault("PADDLEX_HOME", str(paddlex_home))
-    os.environ.setdefault("XDG_CACHE_HOME", str(cache_root))
-    os.environ.setdefault("HOME", str(cache_root))
-    os.environ.setdefault("USERPROFILE", str(cache_root))
+    os.environ["PADDLE_HOME"] = str(paddle_home)
+    os.environ["PADDLEX_HOME"] = str(paddlex_home)
+    os.environ["XDG_CACHE_HOME"] = str(cache_root)
+    os.environ["HOME"] = str(cache_root)
+    os.environ["USERPROFILE"] = str(cache_root)
+    os.environ.setdefault("PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK", "True")
 
 
 @dataclass(frozen=True)

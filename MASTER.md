@@ -144,7 +144,7 @@ Dans l'ordre de priorité :
 
 **Première lecture OCR branchée, validation partielle** : `src/ghost_poker/perception/ocr.py` et `table_state.py` lisent maintenant une première version structurée de `table_meta`, `pot`, `actions` et des sièges. Validation réelle observée sur PokerTH : `street=Preflop`, `game=1`, `hand=1`, `pot.total=0`, `pot.bets=110`, `seat_1..seat_10` relus avec noms/stacks cohérents sur la main testée, et panneau d'action relu correctement (`All-In/F4`, presets `33/50/100`, `Raise/F3/$40`, `Call/F2/$20`, `Fold/F1`).
 
-**Prochain pas immédiat** : stabiliser cette lecture sur plusieurs mains consécutives via le watcher léger, puis traiter les éléments encore incomplets ou non fiables (cartes hero/board, historique d'action détaillé, éventuelle zone `journal_log` optionnelle pour PokerTH).
+**Prochain pas immédiat** : stabiliser cette lecture sur plusieurs mains consécutives via le watcher léger, qui journalise maintenant automatiquement ses changements d'état en JSONL, puis traiter les éléments encore incomplets ou non fiables (cartes hero/board, historique d'action détaillé, éventuelle zone `journal_log` optionnelle pour PokerTH).
 
 **Notes techniques à retenir** :
 - `mistralai 2.4.1` : `from mistralai.client.sdk import Mistral` (pas le top-level).
@@ -159,6 +159,7 @@ Dans l'ordre de priorité :
 - J1.3 observé en réel sur ce poste : `window_rect=1920×1032`, `geometry_warning=null`, crops cohérents au moins pour `hero_cards`, `board`, `actions`, `seat_10`.
 - Run OCR de référence actuel : `data/captures/perception_debug/20260423-140757/summary.json`.
 - Validation compacte en continu disponible via `scripts/watch_table_state.py` ; run réel de référence : lecture compacte OK sur PokerTH (`Preflop`, `pot=0/110`, `Raise/Call/Fold` avec hotkeys).
+- `scripts/watch_table_state.py` ouvre désormais un dossier horodaté sous `data/logs/table_state/` et y écrit automatiquement chaque changement d'état plausible dans `events.jsonl`, pour éviter tout copier-coller manuel.
 - Validation utilisateur supplémentaire : le watcher a suivi une même main de `Preflop` à `Flop` puis `Turn`, puis a observé plusieurs changements de `hand_number` et `game_number` avec états globalement cohérents.
 - Point technique observé sur un lancement utilisateur standard : Paddle peut encore télécharger ses modèles vers `C:\Users\ArtLi\.paddlex\...` si l'environnement shell n'est pas forcé ; ce n'est pas bloquant pour la lecture, mais l'isolation complète des caches au niveau projet n'est pas encore garantie.
 - Dépendances OCR installées et importables dans l'environnement projet : `paddleocr 3.5.0`, `paddle 3.3.1`.

@@ -40,7 +40,7 @@ l'état exact de la table (cartes, stacks, pot, blinds, actions possibles, joueu
 
 **Critère de validation** : 20 mains consécutives, état JSON correct à 100 % sur toutes les rues. Diffs visibles dans `JOURNAL.md`.
 
-**État intermédiaire au 2026-04-23** : capture de référence + calibration du layout validées visuellement en plein écran. La capture vise la zone client PokerTH et le layout versionné contient maintenant une taille de référence (`1920×1032`) ainsi qu'une zone `table_meta`. `scripts/debug_perception.py` est validé en réel sur table ouverte et produit maintenant un premier `TableState` partiel : `table_meta`, `pot`, `actions` et `seat_1..seat_10` remontent sur la main testée. Le mapping des actions a été corrigé par position réelle dans le crop (hotkeys + montants), et `scripts/watch_table_state.py` permet maintenant de surveiller l'état compact sur plusieurs mains. Les cartes (`hero_cards`, `board`) ne sont pas encore lues et la robustesse doit être confirmée sur plusieurs mains.
+**État intermédiaire au 2026-04-23** : capture de référence + calibration du layout validées visuellement en plein écran. La capture vise la zone client PokerTH et le layout versionné contient maintenant une taille de référence (`1920×1032`) ainsi qu'une zone `table_meta`. `scripts/debug_perception.py` est validé en réel sur table ouverte et produit maintenant un premier `TableState` partiel : `table_meta`, `pot`, `actions` et `seat_1..seat_10` remontent sur la main testée. Le mapping des actions a été corrigé par position réelle dans le crop (hotkeys + montants), et `scripts/watch_table_state.py` permet maintenant de surveiller l'état compact sur plusieurs mains tout en journalisant automatiquement chaque changement plausible dans `data/logs/table_state/<timestamp>/events.jsonl`. Les cartes (`hero_cards`, `board`) ne sont pas encore lues et la robustesse doit être confirmée sur plusieurs mains.
 
 **Complément de validation** : le watcher a déjà suivi une même main de `Preflop` à `Flop` puis `Turn`, puis plusieurs changements de `hand_number` et `game_number`. Le prochain vrai critère n'est plus "voit-on des changements ?", mais "les voit-on sans bruit parasite sur une séquence plus longue ?".
 
@@ -133,4 +133,4 @@ de les spécifier finement tant que A1 n'a pas révélé ses points durs.
 
 ## Prochaine action
 
-**J1 – Perception.** Utiliser `watch_table_state.py` pour valider la stabilité sur plusieurs mains (pot / actions / sièges / `table_meta`), puis décider si PokerTH mérite des zones optionnelles `journal_log` et `timer/pre-actions` pour préparer le budget temps et les actions automatiques.
+**J1 – Perception.** Utiliser `watch_table_state.py` avec son auto-log JSONL pour valider la stabilité sur plusieurs mains (pot / actions / sièges / `table_meta`), puis décider si PokerTH mérite des zones optionnelles `journal_log` et `timer/pre-actions` pour préparer le budget temps et les actions automatiques.

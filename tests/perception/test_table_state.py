@@ -1,5 +1,6 @@
+from ghost_poker.perception.layout import HERO_SEAT_NAME
 from ghost_poker.perception.ocr import OCRLine
-from ghost_poker.perception.table_state import _parse_actions
+from ghost_poker.perception.table_state import _parse_actions, _parse_seat
 
 
 def test_parse_actions_uses_spatial_matching_for_hotkeys_and_amounts() -> None:
@@ -28,3 +29,29 @@ def test_parse_actions_uses_spatial_matching_for_hotkeys_and_amounts() -> None:
         {"label": "Call", "hotkey": "F2", "amount": 20},
         {"label": "Fold", "hotkey": "F1", "amount": None},
     ]
+
+
+def test_parse_seat_prefers_stack_near_player_name() -> None:
+    lines = [
+        OCRLine(text="$20", score=0.99, left=104, top=3, width=27, height=14),
+        OCRLine(text="Call", score=0.98, left=96, top=71, width=42, height=22),
+        OCRLine(text="$4 980", score=0.99, left=66, top=98, width=44, height=11),
+        OCRLine(text="Player 8", score=0.99, left=64, top=109, width=54, height=14),
+    ]
+
+    state = _parse_seat("seat_8", lines)
+
+    assert state.player_name == "Player 8"
+    assert state.stack == 4980
+
+
+def test_parse_seat_forces_hero_name_to_human_player() -> None:
+    lines = [
+        OCRLine(text="$7 101", score=0.95, left=67, top=102, width=45, height=12),
+        OCRLine(text="Player", score=0.96, left=65, top=112, width=92, height=17),
+    ]
+
+    state = _parse_seat(HERO_SEAT_NAME, lines)
+
+    assert state.player_name == "Human Player"
+    assert state.stack == 7101
