@@ -55,6 +55,8 @@ data/sessions/
 data/cache/
 data/captures/
 data/logs/
+data/runtime/
+data/test_tmp/
 
 # Modèles locaux (Ollama / VLM)
 models/

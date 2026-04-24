@@ -75,6 +75,12 @@ l'état exact de la table (cartes, stacks, pot, blinds, actions possibles, joueu
 
 **But** : exécuter `fold/call/raise/montant` dans PokerTH via souris/clavier, avec un mode `assist` et un mode `autonomous`, sans gestes robotiques.
 
+**État intermédiaire au 2026-04-24** : le contrat runtime existe déjà (`assist|autonomous`, `dry_run|armed`), `watch_action_plan.py` est validé en réel dans les deux modes, et un premier exécuteur OS garde-fou sait maintenant envoyer uniquement des hotkeys simples en mode `armed`. Les sliders restent volontairement bloqués à ce stade. Le panneau visible local (`control_panel.py` + état JSON partagé) est maintenant validé en réel pour `ARM NEXT`.
+
+**Complément de validation** : le chemin `autonomous + dry_run` est maintenant validé en vrai sur un spot `Call/F2`, et l'armement explicite `--arm-key f10` a lui aussi été validé en vrai : sur plusieurs vrais spots `Call`, aucun envoi n'est parti sans maintien de `F10`. `scripts/debug_key_state.py` a ensuite confirmé que Windows voit bien `F10`, `right_shift` et `ctrl` sur ce poste, puis `scripts/debug_arm_window.py` a confirmé que la fenêtre armée elle-même voit bien `F10` quand elle est maintenue correctement et que `F12` garde bien la priorité. En revanche, `right_shift` puis `F10` ont tous deux échoué sur de vrais spots PokerTH malgré `99` puis `100` échantillons. Le panneau visible local a ensuite été validé en réel : `ARM NEXT` autorise bien une action unique, puis repasse automatiquement à `paused`. Le prochain critère utile est maintenant de valider explicitement `PAUSE` sur un spot actionnable, puis `ARM HOLD` sur plusieurs spots successifs.
+
+**Point méthodologique confirmé** : tester le kill switch "quand `Call` apparaît" est insuffisant si la room autorise des pré-actions. Le prochain vrai critère doit donc passer par un armement explicite juste avant envoi, pas par la simple visibilité du bouton. Le script supporte maintenant cet armement via `--arm-key`.
+
 - Courbes Bézier 2D (départ → cible) avec points de contrôle jittered.
 - Vitesse variable (ease-in/out).
 - Micro-pauses aléatoires avant clic.

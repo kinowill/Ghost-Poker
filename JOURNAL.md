@@ -1,5 +1,229 @@
 # Ghost-Poker — Journal de validation
 
+## 2026-04-24 — J4 kappa : panneau visible `ARM NEXT` validé en réel sur PokerTH
+
+- **État** : repo modifié + validation réelle supplémentaire effectuée sur le nouveau garde-fou par panneau visible.
+- **Ce qui a été fait** :
+  - L'utilisateur a lancé `scripts/control_panel.py` et `watch_action_plan.py` avec `GHOST_POKER_CONTROL_GATE_MODE=panel`.
+  - Le watcher a tourné jusqu'à rencontrer un vrai spot `Call` actionnable.
+- **Ce qui a été observé** :
+  - Les premiers états non actionnables (`actions=[]`, puis `Bet/Check`) ont été bloqués normalement.
+  - Sur un vrai spot `River` avec `Call/F2/$180`, l'exécution est bien partie : `execution_result.status=executed`, `hotkey_sent=F2`.
+  - Le panneau a bien consommé l'autorisation one-shot :
+    - avant exécution : `status=armed_once`
+    - après exécution : `status=paused`
+  - Référence log : `data/logs/action_plan/20260424-110811/events.jsonl`.
+- **Ce qui reste à vérifier** :
+  - Valider explicitement qu'un état `PAUSE` bloque bien un spot actionnable.
+  - Valider `ARM HOLD` sur plusieurs spots successifs.
+  - Décider si le chemin clavier doit être conservé comme fallback ou rétrogradé en simple outil de debug.
+- **Commit(s) liés** : aucun pour l'instant, travail local non commité.
+
+---
+
+## 2026-04-24 — J4 iota : `F10` échoue aussi sur un vrai spot PokerTH
+
+- **État** : repo modifié + validation réelle supplémentaire effectuée sur un vrai spot PokerTH actionnable.
+- **Ce qui a été fait** :
+  - L'utilisateur a lancé `watch_action_plan.py` avec `GHOST_POKER_CONTROL_MODE=autonomous`, `GHOST_POKER_EXECUTION_SAFETY=armed`, `--armed-delay-ms 5000` et `--arm-key f10`.
+  - Le journal auto de référence est `data/logs/action_plan/20260424-104115/events.jsonl`.
+- **Ce qui a été observé** :
+  - Un premier état non actionnable (`actions=[]`) a été bloqué normalement.
+  - Sur un vrai spot `Flop` avec `Call/F2/$40`, la fenêtre armée a tourné complètement : `sample_count=100`, `kill_switch_seen=false`.
+  - Malgré cela, `F10` n'a jamais été vue : `arm_seen=false`, `arm_seen_samples=0`, puis blocage `arm key 'f10' non detectee pendant le delai arme`.
+  - Ce résultat contredit les runs isolés `debug_arm_window.py` où `F10` pouvait être vue jusqu'à `97/100` échantillons.
+- **Ce qui reste à vérifier** :
+  - Tester une touche d'armement alternative en contexte PokerTH réel (`ctrl` ou autre) après passage éventuel par `debug_arm_window.py`.
+  - Vérifier si le problème est spécifique à PokerTH/focus fenêtre plutôt qu'à la touche elle-même.
+- **Commit(s) liés** : aucun pour l'instant, travail local non commité.
+
+---
+
+## 2026-04-24 — J4 theta : `right_shift` échoue en contexte PokerTH réel
+
+- **État** : repo modifié + validation réelle supplémentaire effectuée sur un vrai spot PokerTH actionnable.
+- **Ce qui a été fait** :
+  - L'utilisateur a lancé `watch_action_plan.py` avec `GHOST_POKER_CONTROL_MODE=autonomous`, `GHOST_POKER_EXECUTION_SAFETY=armed`, `--armed-delay-ms 5000` et `--arm-key right_shift`.
+- **Ce qui a été observé** :
+  - Un premier état non actionnable (`actions=[]`) a été bloqué normalement.
+  - Sur un vrai spot `Flop` avec `Call/F2/$40`, la fenêtre armée a tourné presque entièrement : `sample_count=99`, `kill_switch_seen=false`.
+  - Malgré cela, `right_shift` n'a jamais été vue : `arm_seen=false`, `arm_seen_samples=0`, puis blocage `arm key 'right_shift' non detectee pendant le delai arme`.
+  - La session s'est terminée juste après sur `Fenêtre PokerTH minimisée.`.
+- **Ce qui reste à vérifier** :
+  - Revenir au protocole live avec `F10`, qui est déjà validée sur la fenêtre armée isolée.
+  - Éventuellement tester `right_shift` sur `debug_arm_window.py` pour confirmer si l'échec est spécifique à PokerTH ou à la touche elle-même.
+- **Commit(s) liés** : aucun pour l'instant, travail local non commité.
+
+---
+
+## 2026-04-24 — J4 eta : priorité du kill switch validée sur la fenêtre armée
+
+- **État** : repo modifié + validation réelle supplémentaire effectuée sur la priorité du kill switch.
+- **Ce qui a été fait** :
+  - L'utilisateur a lancé plusieurs fois `uv run python scripts/debug_arm_window.py --delay-ms 5000 --arm-key f10`.
+  - Pendant la fenêtre armée, il a maintenu `F10` et `F12` ensemble pour vérifier la priorité du kill switch.
+- **Ce qui a été observé** :
+  - Un run a vu simultanément l'armement et le kill switch : `arm_seen=true`, `arm_seen_samples=68`, `kill_switch_seen=true`, `sample_count=74`.
+  - Trois autres runs ont coupé presque immédiatement sur le kill switch : `kill_switch_seen=true`, avec `sample_count=3`, puis `1`, puis `1`, sans laisser le temps à `F10` d'être échantillonnée.
+  - Conclusion : le kill switch a bien la priorité sur la fenêtre armée. Si `F12` est vue tôt, la fenêtre se coupe immédiatement, même si `F10` n'a pas encore été comptée.
+- **Ce qui reste à vérifier** :
+  - Revalider un envoi volontaire sur `watch_action_plan.py` avec ce diagnostic confirmé.
+  - Décider si le protocole utilisateur doit recommander une touche d'armement plus confortable (`right_shift` ou `ctrl`) pour les tests PokerTH.
+- **Commit(s) liés** : aucun pour l'instant, travail local non commité.
+
+---
+
+## 2026-04-24 — J4 zeta : fenêtre armée isolée validée avec `F10`
+
+- **État** : repo modifié + validation réelle supplémentaire effectuée sur la fenêtre armée isolée.
+- **Ce qui a été fait** :
+  - L'utilisateur a lancé `uv run python scripts/debug_arm_window.py --delay-ms 5000 --arm-key f10`.
+  - Trois runs ont été observés pour isoler la détection d'armement sans dépendre d'un spot PokerTH.
+- **Ce qui a été observé** :
+  - Premier run : `arm_seen=false`, `arm_seen_samples=0`, `sample_count=100`.
+  - Deuxième run : `arm_seen=true`, `arm_seen_samples=66`, `sample_count=100`.
+  - Troisième run : `arm_seen=true`, `arm_seen_samples=97`, `sample_count=100`.
+  - `kill_switch_seen` est resté `false` sur les trois runs.
+  - Conclusion : la fenêtre armée elle-même voit bien `F10` quand elle est maintenue correctement. Le blocage observé auparavant dans `watch_action_plan.py` ne vient donc ni d'un problème global de mapping clavier Windows, ni d'un défaut du compteur interne de la fenêtre armée.
+- **Ce qui reste à vérifier** :
+  - Revalider un envoi volontaire sur `watch_action_plan.py` avec cette instrumentation, ou simplifier encore le protocole côté PokerTH.
+  - Valider ensuite la priorité du kill switch (`F10` + `F12`) sur la même fenêtre armée.
+- **Commit(s) liés** : aucun pour l'instant, travail local non commité.
+
+---
+
+## 2026-04-24 — J4 epsilon : détection clavier Windows validée sur `F10`, `right_shift`, `ctrl`
+
+- **État** : repo modifié + validation réelle supplémentaire effectuée sur la couche de détection clavier.
+- **Ce qui a été fait** :
+  - L'utilisateur a lancé `uv run python scripts/debug_key_state.py`.
+  - Trois touches ont été testées séparément pendant plusieurs secondes : `F10`, `right_shift`, puis `ctrl`.
+- **Ce qui a été observé** :
+  - Windows voit bien `F10` (`pressed_keys=["f10"]`).
+  - Windows voit bien `right_shift` (`pressed_keys=["shift", "right_shift"]`).
+  - Windows voit bien `ctrl` (`pressed_keys=["ctrl"]`).
+  - Le problème observé la veille sur `--arm-key f10` n'est donc **pas** un problème global de mapping clavier sous Windows.
+- **Ce qui reste à vérifier** :
+  - Instrumenter l'exécution armée pour voir si la touche est bien vue pendant la fenêtre armée elle-même.
+  - Revalider ensuite un envoi volontaire avec armement explicite.
+- **Commit(s) liés** : aucun pour l'instant, travail local non commité.
+
+---
+
+## 2026-04-23 — J4 delta : armement explicite validé sur vrais spots actionnables
+
+- **État** : repo modifié + validation réelle supplémentaire effectuée sur le garde-fou `--arm-key`.
+- **Ce qui a été fait** :
+  - L'utilisateur a lancé `watch_action_plan.py` avec `GHOST_POKER_CONTROL_MODE=autonomous`, `GHOST_POKER_EXECUTION_SAFETY=armed`, `--armed-delay-ms 3000` et `--arm-key f10`.
+  - Le run a créé un journal auto dans `data/logs/action_plan/20260423-194418/events.jsonl`.
+- **Ce qui a été observé** :
+  - Sur un premier vrai spot `Call/F2/$10`, le plan était bien actionnable (`is_actionable=true`) mais l'exécution a été bloquée : `execution_result.status=blocked`, raison `arm key 'f10' non detectee pendant le delai arme`.
+  - Un état intermédiaire non actionnable (`Bet/Check` sans `Call`) a aussi été bloqué proprement, comme prévu.
+  - Sur un second vrai spot `Call/F2/$20`, le même garde-fou a de nouveau bloqué l'envoi pour la même raison.
+  - Aucun envoi OS réel n'est parti sans maintien explicite de `F10`, ce qui corrige le défaut méthodologique des tests précédents sur les pré-actions.
+- **Ce qui reste à vérifier** :
+  - Valider un envoi volontaire avec `F10` seul maintenu au bon moment.
+  - Valider la priorité du kill switch avec `F10` + `F12` maintenus ensemble.
+- **Commit(s) liés** : aucun pour l'instant, travail local non commité.
+
+---
+
+## 2026-04-23 — J4 gamma : mode `armed` valide un vrai envoi hotkey simple
+
+- **État** : repo modifié + validation réelle supplémentaire effectuée sur l'exécution OS gardée.
+- **Ce qui a été fait** :
+  - L'utilisateur a lancé `watch_action_plan.py` avec `GHOST_POKER_CONTROL_MODE=autonomous`, `GHOST_POKER_EXECUTION_SAFETY=armed` et `--armed-delay-ms 3000`.
+  - Le script a tourné assez longtemps pour rencontrer d'abord des spots non actionnables, puis un vrai spot `Call`.
+- **Ce qui a été observé** :
+  - Les spots non actionnables restent bloqués proprement (`Bet/Check` sans `Call` visible, puis `execution_result.status=blocked`).
+  - Sur le premier vrai spot `Call/F2/$20`, le plan est devenu actionnable puis le runtime a envoyé une vraie hotkey : `execution_result.status=executed`, `hotkey_sent=F2`.
+  - La dernière erreur `Aucune fenêtre PokerTH trouvée` est cohérente avec la disparition de la fenêtre juste après l'action envoyée.
+  - Le test ne valide **pas** le kill switch : l'utilisateur a attendu "le vrai moment de jouer", mais PokerTH peut afficher des options de pré-action avant ce moment. Le protocole de test doit donc être revu autour d'un **armement explicite** plutôt que "quand `Call` apparaît".
+- **Ce qui reste à vérifier** :
+  - Ajouter un mécanisme d'armement explicite pour tester le kill switch au bon moment, sans dépendre de la visibilité précoce des pré-actions.
+  - Revalider ensuite le blocage par kill switch sur un vrai spot actionnable.
+- **Commit(s) liés** : aucun pour l'instant, travail local non commité.
+
+---
+
+## 2026-04-23 — J4 beta : mode `armed` bloqué proprement hors spot actionnable
+
+- **État** : repo modifié + validation réelle supplémentaire effectuée sur le garde-fou `armed`.
+- **Ce qui a été fait** :
+  - L'utilisateur a lancé `watch_action_plan.py` avec `GHOST_POKER_CONTROL_MODE=autonomous`, `GHOST_POKER_EXECUTION_SAFETY=armed` et `--armed-delay-ms 3000`.
+  - Le run a généré un journal auto dans `data/logs/action_plan/20260423-185818/events.jsonl`.
+- **Ce qui a été observé** :
+  - Le `runtime_profile` est bien passé en `control_mode=autonomous`, `execution_safety=armed`.
+  - Au moment de la lecture, le spot n'était pas actionnable : `actions=[]`, `target=null`, `blocking_issues=["action 'Call' indisponible dans l'etat courant"]`.
+  - Le runtime s'est bloqué proprement sans envoi OS réel : `execution_result.status=blocked`, raison `action plan non actionnable`.
+  - Le journal auto JSONL a bien été créé, ce qui évite d'avoir à surveiller PowerShell en direct.
+- **Ce qui reste à vérifier** :
+  - Valider le blocage spécifique par kill switch sur un vrai spot `Call`.
+  - Valider ensuite un vrai envoi hotkey simple (`F2` ou `F1`) en mode `armed`, toujours sans slider.
+- **Commit(s) liés** : aucun pour l'instant, travail local non commité.
+
+---
+
+## 2026-04-23 — J4 alpha : exécution gardée validée en `dry_run`
+
+- **État** : repo modifié + validation réelle supplémentaire effectuée sur la garde d'exécution.
+- **Ce qui a été fait** :
+  - L'utilisateur a lancé `watch_action_plan.py` avec `GHOST_POKER_CONTROL_MODE=autonomous` et `GHOST_POKER_EXECUTION_SAFETY=dry_run`.
+  - La décision a été forcée en CLI sur `call` pour vérifier le chemin complet jusqu'au résultat d'exécution.
+- **Ce qui a été observé** :
+  - Le `runtime_profile` est bien passé en `control_mode=autonomous` et `execution_safety=dry_run`.
+  - Le `ActionPlan` généré est cohérent : `Call/F2/$20`, `is_actionable=true`, `blocking_issues=[]`.
+  - `should_execute=true` confirme que le runtime considère ce spot comme exécutable.
+  - `execution_result.status=dry_run` et `hotkey_sent=F2` confirment qu'aucun clic réel n'a été envoyé, tout en montrant quelle hotkey serait partie en mode armé.
+- **Ce qui reste à vérifier** :
+  - Valider ensuite le blocage par kill switch en mode `armed`.
+  - Puis valider un vrai envoi de hotkey simple (`F2` ou `F1`) en mode `armed`, sans slider.
+- **Commit(s) liés** : aucun pour l'instant, travail local non commité.
+
+---
+
+## 2026-04-23 — J1.4 quater : preview live `watch_action_plan.py` valide en mode autonomous
+
+- **État** : repo modifié + validation réelle supplémentaire effectuée sur le preview live du contrat d'action.
+- **Ce qui a été fait** :
+  - L'utilisateur a lancé `watch_action_plan.py` avec `GHOST_POKER_CONTROL_MODE=autonomous`.
+  - Observation de plusieurs changements d'état sur PokerTH avec génération d'un `ActionPlan` runtime.
+- **Ce qui a été observé** :
+  - Le `runtime_profile` est bien passé en `control_mode=autonomous`, avec `should_execute=true` et `requires_manual_confirmation=false`.
+  - Sur un état sans boutons visibles (`Turn`, `actions=[]`), le script n'a pas inventé d'action : `decision=null`, `action_plan=null`, warning explicite `aucune decision preview possible avec les actions visibles`.
+  - Sur des états actionnables, le plan généré reste cohérent :
+    - `River` : `Call/F2/$120`, `is_actionable=true`
+    - `Preflop` : `Call/F2/$20`, `is_actionable=true`
+  - Le warning `mode autonomous actif : toute integration future devra verifier kill switch et garde-fous` est normal et attendu à ce stade.
+  - La dernière erreur `Aucune fenêtre PokerTH trouvée` est normale sur ce run : l'utilisateur a fermé PokerTH pendant la surveillance.
+- **Ce qui reste à vérifier** :
+  - Brancher une vraie source de décision au lieu du preview heuristique actuel.
+  - Relier ensuite `should_execute=true` à une exécution OS réelle protégée par kill switch.
+- **Commit(s) liés** : aucun pour l'instant, travail local non commité.
+
+---
+
+## 2026-04-23 — J1.4 ter : preview live `watch_action_plan.py` valide en mode assist
+
+- **État** : repo modifié + validation réelle supplémentaire effectuée sur le preview live du contrat d'action.
+- **Ce qui a été fait** :
+  - L'utilisateur a lancé `uv run python scripts/watch_action_plan.py --interval 0.75 --decision auto` sur PokerTH.
+  - Observation de plusieurs changements d'état avec génération d'un `ActionPlan` dérivé du `TableState` réel.
+- **Ce qui a été observé** :
+  - Le `runtime_profile` est bien resté en `control_mode=assist`, avec `should_execute=false` et `requires_manual_confirmation=true`.
+  - Les cibles proposées sont cohérentes avec les boutons visibles :
+    - `Check/F2` sur un spot `Flop`
+    - `Call/F2/$180` sur un spot `River`
+    - `Call/F2/$20` sur un spot `Preflop`
+  - Les plans générés étaient actionnables (`is_actionable=true`) sans `blocking_issues`.
+  - La dernière erreur `Aucune fenêtre PokerTH trouvée` est normale sur ce run : l'utilisateur a fermé la fenêtre PokerTH pendant la surveillance.
+- **Ce qui reste à vérifier** :
+  - Valider le même preview en `autonomous` pour confirmer le basculement runtime `should_execute=true`.
+  - Brancher ensuite une vraie source de décision (solver ou heuristique propre) au lieu du preview heuristique actuel.
+- **Commit(s) liés** : aucun pour l'instant, travail local non commité.
+
+---
+
 ## 2026-04-23 — J1.4 bis : watcher validé sur plusieurs mains
 
 - **État** : repo modifié + validation réelle supplémentaire effectuée sur la stabilité partielle du watcher.
