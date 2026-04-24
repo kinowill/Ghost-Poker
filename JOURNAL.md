@@ -13,7 +13,7 @@
 - **Ce qui reste à vérifier** :
   - Aucun retest PokerTH réel n'a été fait pour cette correction qualité.
   - Continuer la prochaine validation réelle J1 avec `watch_table_state.py --stable-reads 2`.
-- **Commit(s) liés** : aucun pour l'instant, travail local non commité.
+- **Commit(s) liés** : `c3535d2` (`chore: stabilize table watcher and clean lint`).
 
 ---
 
@@ -32,7 +32,7 @@
 - **Ce qui reste à vérifier** :
   - Lancer `watch_table_state.py --stable-reads 2` sur PokerTH réel pendant plusieurs mains et confirmer que les faux snapshots OCR isolés ne sont plus émis.
   - Continuer ensuite J1 sur les cartes `hero_cards` / `board` et les zones optionnelles `journal_log` / timer / pré-actions.
-- **Commit(s) liés** : aucun pour l'instant, travail local non commité.
+- **Commit(s) liés** : `c3535d2` (`chore: stabilize table watcher and clean lint`).
 
 ---
 
