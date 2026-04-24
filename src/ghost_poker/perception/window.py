@@ -14,8 +14,8 @@ from __future__ import annotations
 
 import ctypes
 import time
-from dataclasses import dataclass
 from ctypes import wintypes
+from dataclasses import dataclass
 
 import mss
 import numpy as np

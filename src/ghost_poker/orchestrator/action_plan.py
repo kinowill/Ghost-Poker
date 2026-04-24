@@ -105,7 +105,8 @@ def _resolve_standard_action(
             resolved_amount = decision.amount
             uses_slider = True
             warnings.append(
-                f"montant {decision.amount} necessite un override slider au lieu du bouton {target_option.amount}"
+                f"montant {decision.amount} necessite un override slider "
+                f"au lieu du bouton {target_option.amount}"
             )
 
     return ResolvedActionTarget(

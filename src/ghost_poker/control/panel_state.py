@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
-import json
 from pathlib import Path
 
 
@@ -87,7 +87,12 @@ def save_control_panel_state(path: Path, state: ControlPanelState) -> None:
     path.write_text(json.dumps(state.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def set_control_panel_state(path: Path, status: ControlPanelStatus, *, note: str = "") -> ControlPanelState:
+def set_control_panel_state(
+    path: Path,
+    status: ControlPanelStatus,
+    *,
+    note: str = "",
+) -> ControlPanelState:
     state = ControlPanelState(status=status, note=note, updated_at=_timestamp_now())
     save_control_panel_state(path, state)
     return state

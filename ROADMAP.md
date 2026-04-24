@@ -44,6 +44,11 @@ l'état exact de la table (cartes, stacks, pot, blinds, actions possibles, joueu
 
 **Complément de validation** : le watcher a déjà suivi une même main de `Preflop` à `Flop` puis `Turn`, puis plusieurs changements de `hand_number` et `game_number`. Le prochain vrai critère n'est plus "voit-on des changements ?", mais "les voit-on sans bruit parasite sur une séquence plus longue ?".
 
+**État intermédiaire au 2026-04-24** : le watcher dispose maintenant d'une
+stabilisation configurable (`--stable-reads`, défaut `2`) avant émission/log
+d'un snapshot. Le comportement anti-bruit est validé par tests automatisés,
+mais pas encore par une session PokerTH réelle longue.
+
 ---
 
 ### J2 — Solver préflop ⏳
@@ -141,4 +146,8 @@ de les spécifier finement tant que A1 n'a pas révélé ses points durs.
 
 ## Prochaine action
 
-**J1 – Perception.** Utiliser `watch_table_state.py` avec son auto-log JSONL pour valider la stabilité sur plusieurs mains (pot / actions / sièges / `table_meta`), puis décider si PokerTH mérite des zones optionnelles `journal_log` et `timer/pre-actions` pour préparer le budget temps et les actions automatiques.
+**J1 – Perception.** Lancer `watch_table_state.py --stable-reads 2` avec son
+auto-log JSONL pour valider la stabilité sur plusieurs mains réelles (pot /
+actions / sièges / `table_meta`) sans bruit parasite, puis décider si PokerTH
+mérite des zones optionnelles `journal_log` et `timer/pre-actions` pour préparer
+le budget temps et les actions automatiques.

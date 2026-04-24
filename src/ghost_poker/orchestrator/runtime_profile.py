@@ -50,7 +50,8 @@ def build_runtime_profile(runtime_config: RuntimeConfig) -> RuntimeProfile:
 
     if control_policy.executes_actions:
         warnings.append(
-            "mode autonomous actif : toute integration future devra verifier kill switch et garde-fous"
+            "mode autonomous actif : toute integration future devra verifier kill switch "
+            "et garde-fous"
         )
         if runtime_config.execution_safety.value == "dry_run":
             warnings.append("mode autonomous en dry_run : aucune action OS reelle ne sera executee")

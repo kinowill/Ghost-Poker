@@ -53,10 +53,7 @@ def _is_plausible_snapshot(snapshot: dict[str, object]) -> bool:
         return False
 
     actions = snapshot.get("actions")
-    if not actions and snapshot.get("all_in_hotkey") is None and snapshot.get("street") is None:
-        return False
-
-    return True
+    return bool(actions or snapshot.get("all_in_hotkey") is not None or snapshot.get("street"))
 
 
 def _pick_preview_decision(table_state: TableState) -> DecisionIntent | None:
@@ -158,7 +155,9 @@ def _build_payload(
 
 
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Observe la table et construit un ActionPlan preview.")
+    parser = argparse.ArgumentParser(
+        description="Observe la table et construit un ActionPlan preview."
+    )
     parser.add_argument(
         "--interval",
         type=float,
@@ -192,7 +191,10 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--arm-key",
         default=None,
-        help="Touche a maintenir pendant le delai arme pour autoriser l'envoi (ex: right_shift, ctrl, f10).",
+        help=(
+            "Touche a maintenir pendant le delai arme pour autoriser l'envoi "
+            "(ex: right_shift, ctrl, f10)."
+        ),
     )
     parser.add_argument(
         "--log-dir",
@@ -212,7 +214,9 @@ def main() -> int:
     args = _parse_args()
 
     if not LAYOUT_PATH.exists():
-        logger.error(f"Aucun layout calibre : {LAYOUT_PATH} absent. Lance d'abord calibrate_layout.py.")
+        logger.error(
+            f"Aucun layout calibre : {LAYOUT_PATH} absent. Lance d'abord calibrate_layout.py."
+        )
         return 1
 
     if args.amount is not None and args.decision not in {"bet", "raise"}:
@@ -237,7 +241,9 @@ def main() -> int:
 
     logger.info(
         "Surveillance action_plan demarree "
-        f"(interval={args.interval:.2f}s, max_events={args.max_events or 'inf'}, decision={args.decision}, armed_delay_ms={args.armed_delay_ms}, arm_key={args.arm_key or 'none'}). "
+        f"(interval={args.interval:.2f}s, max_events={args.max_events or 'inf'}, "
+        f"decision={args.decision}, armed_delay_ms={args.armed_delay_ms}, "
+        f"arm_key={args.arm_key or 'none'}). "
         "Ctrl+C pour quitter."
     )
     if log_path is not None:

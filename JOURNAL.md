@@ -1,5 +1,41 @@
 # Ghost-Poker — Journal de validation
 
+## 2026-04-24 — Qualité : dette Ruff globale corrigée
+
+- **État** : repo modifié + validation automatisée locale effectuée. Prod/PokerTH non aligné dans cette session, validation réelle PokerTH non effectuée.
+- **Ce qui a été fait** :
+  - Correction des dettes Ruff préexistantes sur `src/`, `scripts/` et `tests`.
+  - Changements limités à du style contrôlé : imports, lignes trop longues, simplification de garde, variable inutilisée.
+- **Ce qui a été observé** :
+  - Ruff global OK : `uv run --extra dev ruff check src scripts tests`.
+  - Suite complète OK : `PYTHONPATH=. uv run --extra dev pytest` → 49 tests passés.
+  - `git diff --check` OK.
+- **Ce qui reste à vérifier** :
+  - Aucun retest PokerTH réel n'a été fait pour cette correction qualité.
+  - Continuer la prochaine validation réelle J1 avec `watch_table_state.py --stable-reads 2`.
+- **Commit(s) liés** : aucun pour l'instant, travail local non commité.
+
+---
+
+## 2026-04-24 — J1.5 : stabilisation locale du watcher `table_state`
+
+- **État** : repo modifié + validation automatisée locale effectuée. Prod/PokerTH non aligné dans cette session, validation réelle PokerTH non effectuée.
+- **Ce qui a été fait** :
+  - Ajout d'un stabilisateur de snapshots OCR dans `src/ghost_poker/perception/stability.py`.
+  - `scripts/watch_table_state.py` accepte maintenant `--stable-reads` et demande par défaut 2 lectures identiques consécutives avant d'afficher/logguer un changement.
+  - Correction documentaire du statut du remote GitHub, qui n'est plus vide.
+- **Ce qui a été observé** :
+  - Tests ciblés OK : `PYTHONPATH=. uv run --extra dev pytest tests\perception\test_stability.py tests\scripts\test_watch_table_state.py tests\perception\test_table_state.py` → 9 tests passés.
+  - Suite complète OK : `PYTHONPATH=. uv run --extra dev pytest` → 49 tests passés.
+  - Ruff ciblé OK : `uv run --extra dev ruff check src\ghost_poker\perception\stability.py scripts\watch_table_state.py tests\perception\test_stability.py tests\scripts\test_watch_table_state.py`.
+  - Au moment de cette validation J1.5, Ruff global signalait encore des dettes préexistantes dans d'autres fichiers (`control_panel.py`, `watch_action_plan.py`, `executor.py`, etc.). Elles ont été corrigées dans l'entrée qualité suivante.
+- **Ce qui reste à vérifier** :
+  - Lancer `watch_table_state.py --stable-reads 2` sur PokerTH réel pendant plusieurs mains et confirmer que les faux snapshots OCR isolés ne sont plus émis.
+  - Continuer ensuite J1 sur les cartes `hero_cards` / `board` et les zones optionnelles `journal_log` / timer / pré-actions.
+- **Commit(s) liés** : aucun pour l'instant, travail local non commité.
+
+---
+
 ## 2026-04-24 — J4 kappa : panneau visible `ARM NEXT` validé en réel sur PokerTH
 
 - **État** : repo modifié + validation réelle supplémentaire effectuée sur le nouveau garde-fou par panneau visible.

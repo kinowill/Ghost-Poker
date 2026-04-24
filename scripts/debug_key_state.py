@@ -12,7 +12,11 @@ from typing import TextIO
 
 from loguru import logger
 
-from ghost_poker.control.kill_switch import find_pressed_keys, get_supported_key_names, is_supported_key
+from ghost_poker.control.kill_switch import (
+    find_pressed_keys,
+    get_supported_key_names,
+    is_supported_key,
+)
 
 DEFAULT_KEYS = [
     "f10",
@@ -41,7 +45,10 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--keys",
         default=",".join(DEFAULT_KEYS),
-        help="Liste comma-separated des touches a observer (defaut: f10,f12,shift,right_shift,ctrl,right_ctrl,alt,space).",
+        help=(
+            "Liste comma-separated des touches a observer "
+            "(defaut: f10,f12,shift,right_shift,ctrl,right_ctrl,alt,space)."
+        ),
     )
     parser.add_argument(
         "--interval",

@@ -32,7 +32,9 @@ def _build_output_dir() -> Path:
 
 def main() -> int:
     if not LAYOUT_PATH.exists():
-        logger.error(f"Aucun layout calibré : {LAYOUT_PATH} absent. Lance d'abord calibrate_layout.py.")
+        logger.error(
+            f"Aucun layout calibré : {LAYOUT_PATH} absent. Lance d'abord calibrate_layout.py."
+        )
         return 1
 
     layout = Layout.load()

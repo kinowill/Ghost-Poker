@@ -4,7 +4,7 @@
 > une image exacte de Ghost-Poker à l'instant T.
 > Mis à jour à chaque session qui modifie la vérité du projet.
 
-**Repo distant** : https://github.com/kinowill/Ghost-Poker (vide, à peupler au premier push)
+**Repo distant** : https://github.com/kinowill/Ghost-Poker (actif, branche `main` poussée)
 **Dossier local** : `C:\PROJETS\POKER\` (à renommer éventuellement en `Ghost-Poker` si souhaité)
 
 ---
@@ -132,7 +132,7 @@ Dans l'ordre de priorité :
 4. **Code source** (`src/`) et configuration réelle — vérité runtime.
    En cas de conflit avec une doc plus ancienne, **c'est le code qui gagne**.
 5. **Repo distant** (https://github.com/kinowill/Ghost-Poker) — vérité partagée
-   une fois le premier push effectué. Tant que vide, non-authoritaire.
+   quand les commits locaux sont poussés sur `main`.
 
 ---
 
@@ -149,7 +149,11 @@ Dans l'ordre de priorité :
 
 **Première lecture OCR branchée, validation partielle** : `src/ghost_poker/perception/ocr.py` et `table_state.py` lisent maintenant une première version structurée de `table_meta`, `pot`, `actions` et des sièges. Validation réelle observée sur PokerTH : `street=Preflop`, `game=1`, `hand=1`, `pot.total=0`, `pot.bets=110`, `seat_1..seat_10` relus avec noms/stacks cohérents sur la main testée, et panneau d'action relu correctement (`All-In/F4`, presets `33/50/100`, `Raise/F3/$40`, `Call/F2/$20`, `Fold/F1`).
 
-**Prochain pas immédiat** : stabiliser cette lecture sur plusieurs mains consécutives via le watcher léger, qui journalise maintenant automatiquement ses changements d'état en JSONL, puis traiter les éléments encore incomplets ou non fiables (cartes hero/board, historique d'action détaillé, éventuelle zone `journal_log` optionnelle pour PokerTH).
+**Prochain pas immédiat** : valider en réel sur PokerTH le watcher stabilisé
+(`--stable-reads`, 2 lectures identiques par défaut), qui journalise automatiquement
+ses changements d'état en JSONL, puis traiter les éléments encore incomplets ou
+non fiables (cartes hero/board, historique d'action détaillé, éventuelle zone
+`journal_log` optionnelle pour PokerTH).
 
 **Notes techniques à retenir** :
 - `mistralai 2.4.1` : `from mistralai.client.sdk import Mistral` (pas le top-level).
@@ -165,6 +169,9 @@ Dans l'ordre de priorité :
 - Run OCR de référence actuel : `data/captures/perception_debug/20260423-140757/summary.json`.
 - Validation compacte en continu disponible via `scripts/watch_table_state.py` ; run réel de référence : lecture compacte OK sur PokerTH (`Preflop`, `pot=0/110`, `Raise/Call/Fold` avec hotkeys).
 - `scripts/watch_table_state.py` ouvre désormais un dossier horodaté sous `data/logs/table_state/` et y écrit automatiquement chaque changement d'état plausible dans `events.jsonl`, pour éviter tout copier-coller manuel.
+- `scripts/watch_table_state.py` utilise maintenant une stabilisation locale des
+  snapshots OCR (`--stable-reads`, défaut `2`) pour éviter d'émettre/logguer un
+  bruit isolé. Validation automatisée OK, validation PokerTH réelle encore à faire.
 - Le code porte maintenant un socle runtime explicite pour `GHOST_POKER_CONTROL_MODE=assist|autonomous` et pour un backend meta interchangeable (`disabled`, `mistral`, `groq`, `openai_compatible`, `ollama`, `local`) via `src/ghost_poker/utils/runtime_config.py`.
 - Un point d'entrée de diagnostic existe maintenant : `scripts/show_runtime_profile.py` charge `.env`, construit le profil runtime dérivé (`assist|autonomous` + backend meta) et l'affiche en JSON.
 - Le contrat d'action commence à être branché : `DecisionIntent` (côté cerveau) et `ActionPlan` (côté orchestrateur) changent déjà selon `assist|autonomous` et valident les actions visibles (`call`, `raise`, `all-in`, override slider) avant toute future exécution OS.

@@ -3,15 +3,21 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 import tkinter as tk
+from pathlib import Path
 
-from ghost_poker.control import ControlPanelStatus, load_control_panel_state, set_control_panel_state
+from ghost_poker.control import (
+    ControlPanelStatus,
+    load_control_panel_state,
+    set_control_panel_state,
+)
 from ghost_poker.utils import load_runtime_config
 
 
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Panneau local visible always-on-top pour Ghost-Poker.")
+    parser = argparse.ArgumentParser(
+        description="Panneau local visible always-on-top pour Ghost-Poker."
+    )
     parser.add_argument(
         "--state-path",
         type=Path,
@@ -100,7 +106,11 @@ def main() -> int:
     button_frame.pack(fill="x", padx=12)
 
     buttons = [
-        ("ARM NEXT", "#0f766e", lambda: set_status(ControlPanelStatus.ARMED_ONCE, "armed next action")),
+        (
+            "ARM NEXT",
+            "#0f766e",
+            lambda: set_status(ControlPanelStatus.ARMED_ONCE, "armed next action"),
+        ),
         ("ARM HOLD", "#0369a1", lambda: set_status(ControlPanelStatus.ARMED, "armed persistent")),
         ("PAUSE", "#92400e", lambda: set_status(ControlPanelStatus.PAUSED, "paused by operator")),
         ("STOP", "#991b1b", lambda: set_status(ControlPanelStatus.STOPPED, "stopped by operator")),

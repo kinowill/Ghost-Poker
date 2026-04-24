@@ -3,6 +3,7 @@
 Usage :
     uv run python scripts/watch_table_state.py
     uv run python scripts/watch_table_state.py --interval 0.75 --max-events 10
+    uv run python scripts/watch_table_state.py --stable-reads 2
     uv run python scripts/watch_table_state.py --log-dir data/logs/table_state
 """
 
@@ -20,6 +21,7 @@ from loguru import logger
 
 from ghost_poker.perception.layout import LAYOUT_PATH, Layout
 from ghost_poker.perception.regions import extract_regions
+from ghost_poker.perception.stability import StableSnapshotEmitter
 from ghost_poker.perception.table_state import TableState, read_table_state
 from ghost_poker.perception.window import PokerTHNotFoundError, capture_pokerth
 
@@ -57,16 +59,13 @@ def _is_plausible_snapshot(snapshot: dict[str, object]) -> bool:
     if game_number is None and hand_number is None:
         return False
 
-    if (
+    return not (
         street is None
         and pot_total is None
         and pot_bets is None
         and hero_name not in {None, "Human Player"}
         and not actions
-    ):
-        return False
-
-    return True
+    )
 
 
 def _build_log_session(log_root: Path) -> tuple[Path, Path, TextIO]:
@@ -111,6 +110,15 @@ def _parse_args() -> argparse.Namespace:
         action="store_true",
         help="Desactive l'ecriture du journal JSONL.",
     )
+    parser.add_argument(
+        "--stable-reads",
+        type=int,
+        default=2,
+        help=(
+            "Nombre de lectures identiques consecutives exigees avant emission "
+            "(defaut: 2, 1 = comportement immediat)."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -118,12 +126,14 @@ def main() -> int:
     args = _parse_args()
 
     if not LAYOUT_PATH.exists():
-        logger.error(f"Aucun layout calibre : {LAYOUT_PATH} absent. Lance d'abord calibrate_layout.py.")
+        logger.error(
+            f"Aucun layout calibre : {LAYOUT_PATH} absent. Lance d'abord calibrate_layout.py."
+        )
         return 1
 
     layout = Layout.load()
-    previous_signature: str | None = None
     emitted_events = 0
+    stabilizer = StableSnapshotEmitter(required_reads=args.stable_reads)
     session_dir: Path | None = None
     log_path: Path | None = None
     log_handle: TextIO | None = None
@@ -133,7 +143,8 @@ def main() -> int:
 
     logger.info(
         "Surveillance table_state demarree "
-        f"(interval={args.interval:.2f}s, max_events={args.max_events or 'inf'}). Ctrl+C pour quitter."
+        f"(interval={args.interval:.2f}s, stable_reads={stabilizer.required_reads}, "
+        f"max_events={args.max_events or 'inf'}). Ctrl+C pour quitter."
     )
     if log_path is not None:
         logger.info(f"Journal auto actif : {log_path}")
@@ -152,11 +163,9 @@ def main() -> int:
             if not _is_plausible_snapshot(snapshot):
                 time.sleep(max(args.interval, 0.1))
                 continue
-            signature = json.dumps(snapshot, sort_keys=True)
 
-            if signature != previous_signature:
+            if stabilizer.should_emit(snapshot):
                 logger.info(json.dumps(snapshot, indent=2))
-                previous_signature = signature
                 emitted_events += 1
                 if log_handle is not None:
                     record = _build_log_record(snapshot, emitted_events)

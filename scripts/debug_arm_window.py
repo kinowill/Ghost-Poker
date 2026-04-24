@@ -73,7 +73,10 @@ def main() -> int:
         "Test arm_window demarre "
         f"(delay_ms={args.delay_ms}, arm_key={args.arm_key}, kill_switch_key={kill_switch_key})."
     )
-    logger.info("Maintiens la touche d'armement pendant toute la fenetre, ou ajoute le kill switch pour verifier sa priorite.")
+    logger.info(
+        "Maintiens la touche d'armement pendant toute la fenetre, "
+        "ou ajoute le kill switch pour verifier sa priorite."
+    )
 
     result = observe_armed_window(
         armed_delay_ms=args.delay_ms,

@@ -273,7 +273,7 @@ def _parse_actions(lines: list[OCRLine]) -> ActionsState:
         anchor_y = _line_center_y(anchor)
         anchor_x = _line_center_x(anchor)
 
-        for index, (line, value) in enumerate(remaining_amounts):
+        for index, (line, _value) in enumerate(remaining_amounts):
             delta_y = _line_center_y(line) - anchor_y
             if delta_y < 0 or delta_y > max_y_delta:
                 continue

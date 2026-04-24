@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import ctypes
 import sys
-from typing import Iterable
-
+from collections.abc import Iterable
 
 _VK_BY_KEY = {
     "f1": 0x70,
